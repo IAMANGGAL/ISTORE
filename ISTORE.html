@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --text: #e0e0e0;
+            --text-dim: #aaa;
+        }
+
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* Header */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: rgba(18, 18, 18, 0.95);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .logo { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .search-trigger { font-size: 20px; color: var(--text-dim); }
+
+        /* Banner Slider (Featured) */
+        .slider-container {
+            padding: 10px 0 20px 0;
+            overflow-x: auto;
+            display: flex;
+            gap: 15px;
+            padding-left: 20px;
+            scroll-snap-type: x mandatory;
+        }
+        .slider-card {
+            min-width: 85%;
+            height: 180px;
+            background: #333;
+            border-radius: 15px;
+            scroll-snap-align: center;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+        .slider-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        }
+
+        /* Categories Bar */
+        .cat-bar {
+            display: flex;
+            gap: 10px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .cat-chip {
+            padding: 8px 18px;
+            background: var(--surface);
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid #333;
+            color: var(--text-dim);
+            transition: 0.3s;
+        }
+        .cat-chip.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* Section Titles */
+        .section-title { padding: 20px 20px 10px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; }
+        .section-title span { font-size: 12px; color: var(--primary); }
+
+        /* App Grid/List */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .app-card {
+            text-align: center;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background: #252525;
+            border-radius: 18px;
+            margin: 0 auto 8px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .app-name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .app-meta { font-size: 10px; color: var(--text-dim); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating Search */
+        #search-box {
+            position: fixed; top: -100px; left: 0; width: 100%;
+            background: var(--surface);
+            padding: 15px;
+            transition: 0.4s;
+            z-index: 2000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        #search-box.active { top: 0; }
+        #search-box input {
+            width: 100%; padding: 12px; border-radius: 10px; border: none; background: #2c2c2c; color: #fff;
+        }
+
+        /* Modal for Details */
+        .modal {
+            position: fixed; inset: 0; background: var(--bg);
+            z-index: 3000; transform: translateY(100%);
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto; padding-bottom: 80px;
+        }
+        .modal.active { transform: translateY(0); }
+        .close-modal { position: absolute; top: 20px; left: 20px; font-size: 24px; z-index: 10; }
+        
+        .hero-info { padding: 60px 20px 20px; display: flex; gap: 20px; align-items: center; }
+        .hero-icon { width: 100px; height: 100px; border-radius: 22px; }
+        .btn-download {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: var(--primary); color: #000;
+            padding: 16px; border-radius: 12px; text-align: center;
+            font-weight: bold; text-decoration: none; box-shadow: 0 5px 15px rgba(187, 134, 252, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="search-box">
+        <input type="text" id="user-search" placeholder="Search apps or games..." onkeyup="filterApps()">
+    </div>
+
+    <header>
+        <div class="logo">AppStore</div>
+        <div class="search-trigger" onclick="toggleSearch()"><i class="fa-solid fa-magnifying-glass"></i></div>
+    </header>
+
+    <div id="featured-section">
+        <div class="slider-container" id="featured-slider">
+            </div>
+    </div>
+
+    <div class="cat-bar" id="category-bar">
+        <div class="cat-chip active" onclick="filterCat('All', this)">All</div>
+        </div>
+
+    <div class="section-title">All Apps <span onclick="location.reload()">Refresh</span></div>
+    
+    <div class="app-grid" id="main-app-grid">
+        </div>
+
+    <div class="modal" id="app-modal">
+        <div class="close-modal" onclick="closeModal()"><i class="fa-solid fa-arrow-left"></i></div>
+        <div id="modal-content"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // 🔥 CONFIG - Admin Panel wali same config yahan dalein
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEvbljt-qHB_YSy3lHmabKImJCexxn-mg",
+            authDomain: "play-store-15b2b.firebaseapp.com",
+            databaseURL: "https://play-store-15b2b-default-rtdb.firebaseio.com",
+            projectId: "play-store-15b2b",
+            storageBucket: "play-store-15b2b.firebasestorage.app",
+            messagingSenderId: "445284180555",
+            appId: "1:445284180555:web:a168c12f7e978474dba3ce"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let allApps = {};
+        let currentFilter = 'All';
+
+        // Fetch Categories
+        onValue(ref(db, 'categories'), (snap) => {
+            const cats = snap.val();
+            const bar = document.getElementById('category-bar');
+            bar.innerHTML = '<div class="cat-chip active" onclick="window.filterCat(\'All\', this)">All</div>';
+            if(cats) {
+                Object.values(cats).forEach(c => {
+                    bar.innerHTML += `<div class="cat-chip" onclick="window.filterCat('${c.name}', this)">${c.name}</div>`;
+                });
+            }
+        });
+
+        // Fetch Apps
+        onValue(ref(db, 'apps'), (snap) => {
+            allApps = snap.val() || {};
+            renderStore();
+        });
+
+        function renderStore() {
+            const grid = document.getElementById('main-app-grid');
+            const slider = document.getElementById('featured-slider');
+            grid.innerHTML = '';
+            slider.innerHTML = '';
+
+            Object.keys(allApps).forEach(key => {
+                const app = allApps[key];
+
+                // Render Featured Slider
+                if(app.featured) {
+                    slider.innerHTML += `
+                        <div class="slider-card" style="background-image: url('${app.banner || app.icon}')" onclick="window.openApp('${key}')">
+                            <div class="slider-overlay">
+                                <div style="font-weight:bold">${app.name}</div>
+                                <div style="font-size:11px; opacity:0.8">${app.category} • New Update</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Main Grid
+                if(currentFilter === 'All' || app.category === currentFilter) {
+                    grid.innerHTML += `
+                        <div class="app-card" onclick="window.openApp('${key}')">
+                            <img src="${app.icon}" class="app-icon">
+                            <div class="app-name">${app.name}</div>
+                            <div class="app-meta">${app.size} • ⭐${app.rating}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        window.filterCat = (cat, el) => {
+            currentFilter = cat;
+            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderStore();
+        };
+
+        window.openApp = (id) => {
+            const app = allApps[id];
+            const modal = document.getElementById('app-modal');
+            const content = document.getElementById('modal-content');
+
+            content.innerHTML = `
+                <div class="hero-info">
+                    <img src="${app.icon}" class="hero-icon">
+                    <div>
+                        <h2 style="margin:0">${app.name}</h2>
+                        <div style="color:var(--secondary)">${app.category}</div>
+                        <div style="font-size:12px; color:#888">Version ${app.version}</div>
+                    </div>
+                </div>
+                <div style="padding: 20px; border-top: 1px solid #333">
+                    <div style="display:flex; justify-content:space-around; text-align:center; margin-bottom:20px;">
+                        <div><b>${app.rating} ⭐</b><br><small>Rating</small></div>
+                        <div><b>${app.size}</b><br><small>Size</small></div>
+                        <div><b>${app.downloads || 0}</b><br><small>Downloads</small></div>
+                    </div>
+                    <h4>Description</h4>
+                    <p style="color:#aaa; line-height:1.6; font-size:14px;">${app.description || 'No description available.'}</p>
+                </div>
+                <a href="${app.apk}" class="btn-download" onclick="window.trackDownload('${id}')">
+                    <i class="fa-solid fa-download"></i> &nbsp; Download APK
+                </a>
+            `;
+            modal.classList.add('active');
+        };
+
+        window.trackDownload = (id) => {
+            update(ref(db, 'apps/' + id), {
+                downloads: increment(1)
+            });
+        };
+
+        window.closeModal = () => document.getElementById('app-modal').classList.remove('active');
+
+        window.toggleSearch = () => {
+            document.getElementById('search-box').classList.toggle('active');
+            document.getElementById('user-search').focus();
+        };
+
+        window.filterApps = () => {
+            const term = document.getElementById('user-search').value.toLowerCase();
+            const grid = document.getElementById('main-app-grid');
+            grid.innerHTML = '';
+            
+            Object.keys(allApps).forEach(key => {
+                const app = allApps[key];
+                if(app.name.toLowerCase().includes(term)) {
+                    grid.innerHTML += `
+                        <div class="app-card" onclick="window.openApp('${key}')">
+                            <img src="${app.icon}" class="app-icon">
+                            <div class="app-name">${app.name}</div>
+                            <div class="app-meta">${app.size} • ⭐${app.rating}</div>
+                        </div>
+                    `;
+                }
+            });
+        };
+
+    </script>
+</body>
+</html>
